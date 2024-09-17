@@ -1,4 +1,6 @@
 using MagicVilla_VillaApi.DataFolder;
+using MagicVilla_VillaApi.Models;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +24,24 @@ app.MapGet("/api/coupon/{id:int}", (int id) =>
 {
     return Results.Ok(CouponStore.couponList.FirstOrDefault(user => user.Id == id));
 });
+
+app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
+{
+    if ((coupon.Id != 0) || string.IsNullOrEmpty(coupon.Name))
+    {
+        return Results.BadRequest("Invalid id or coupon name");
+
+    }
+    if(CouponStore.couponList.FirstOrDefault(cpn => cpn.Name.ToLower() == coupon.Name.ToLower()) != null)
+    {
+        return Results.BadRequest("Coupon alreday exists");
+    }
+
+    coupon.Id = CouponStore.couponList.OrderByDescending(cpn => cpn.Id).FirstOrDefault().Id + 1;
+    CouponStore.couponList.Add(coupon);
+    return Results.Ok(coupon);
+});
+
 
 app.UseHttpsRedirection();
 
