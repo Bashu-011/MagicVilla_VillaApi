@@ -1,3 +1,5 @@
+using MagicVilla_VillaApi.DataFolder;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -14,7 +16,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapGet("/hello", () => "Hello World");
+app.MapGet("/api/coupon", () => Results.Ok(CouponStore.couponList));
+
+app.MapGet("/api/coupon/{id:int}", (int id) =>
+{
+    return Results.Ok(CouponStore.couponList.FirstOrDefault(user => user.Id == id));
+});
 
 app.UseHttpsRedirection();
 
