@@ -18,7 +18,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapGet("/api/coupon", () => Results.Ok(CouponStore.couponList));
+app.MapGet("/api/coupon", (ILogger<Program> _logger) => 
+{
+    _logger.Log(LogLevel.Information, "Getting all coupons");
+    return Results.Ok(CouponStore.couponList);
+}
+);
 
 app.MapGet("/api/coupon/{id:int}", (int id) =>
 {
