@@ -1,5 +1,6 @@
 using MagicVilla_VillaApi.DataFolder;
 using MagicVilla_VillaApi.Models;
+using MagicVilla_VillaApi.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,21 +31,41 @@ app.MapGet("/api/coupon/{id:int}", (int id) =>
     return Results.Ok(CouponStore.couponList.FirstOrDefault(user => user.Id == id));
 });
 
-app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
+app.MapPost("/api/coupon", ([FromBody] CouponCreateDto couponCDto) =>
 {
-    if ((coupon.Id != 0) || string.IsNullOrEmpty(coupon.Name))
+    if (string.IsNullOrEmpty(couponCDto.Name))
     {
         return Results.BadRequest("Invalid id or coupon name");
 
     }
-    if(CouponStore.couponList.FirstOrDefault(cpn => cpn.Name.ToLower() == coupon.Name.ToLower()) != null)
+    if(CouponStore.couponList.FirstOrDefault(cpn => cpn.Name.ToLower() == couponCDto.Name.ToLower()) != null)
     {
         return Results.BadRequest("Coupon alreday exists");
     }
 
+    //convert the dto into a coupon before adding to the db
+    Coupon coupon = new()
+    {
+        IsActive = couponCDto.IsActive,
+        Name = couponCDto.Name,
+        Percent = couponCDto.Percent,
+    };
+
     coupon.Id = CouponStore.couponList.OrderByDescending(cpn => cpn.Id).FirstOrDefault().Id + 1;
     CouponStore.couponList.Add(coupon);
-    return Results.Ok(coupon);
+
+    
+    //update the coupondto so that it returns specified data to the client
+    CouponDto couponDto = new()
+    {
+        Id = coupon.Id,
+        Name = coupon.Name,
+        Percent = coupon.Percent,
+        IsActive = coupon.IsActive,
+        Created = coupon.Created
+    };
+
+    return Results.Ok(couponDto);
 });
 
 
